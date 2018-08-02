@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cx.mapper.UserMapperOrders">
+
+
+    <resultMap type="com.cx.pojo.Orders" id="OrdersUserResultMap">
+        <!-- 配置映射订单信息 -->
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="number" property="number"/>
+        <result column="createtime" property="createtime"/>
+        <result column="note" property="note"/>
+
+        <!-- 配置映射的关联的用户信息 -->
+        <!-- association用于映射关联查询单个对象的信息
+            property：要将关联查询的用户信息映射到Orders中的哪个属性
+            javaType：该属性的类型
+         -->
+        <association property="user" javaType="com.cx.pojo.User">
+            <id column="user_id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="age" property="age"/>
+        </association>
+    </resultMap>
+    <resultMap type="com.cx.pojo.Orders" id="OrdersAndOrderDetailResultMap" extends="OrdersUserResultMap">
+        <!-- 配置映射订单信息和关联的用户信息和上面的一样，继承上面的即可 -->
+        <!-- 配置关联的订单明细信息 -->
+        <collection property="orderdetails" ofType="com.cx.pojo.Orderdetail">
+            <id column="orderdetail_id" property="id"/>
+            <result column="items_id" property="itemsId"/>
+            <result column="items_num" property="itemsNum"/>
+            <result column="orders_id" property="ordersId"/>
+        </collection>
+    </resultMap>
+
+    <select id="findUserAndItemsResultMap" resultMap="UserAndItemsResultMap">
+        SELECT
+        orders.*,
+        user.`name`,
+        user.`age`,
+        orderdetail.`id` orderdetail_id,
+        orderdetail.`items_id`,
+        orderdetail.`items_num`,
+        orderdetail.`orders_id`,
+        items.`name` items_name,
+        items.`detail` items_detail,
+        items.`price` items_price
+        FROM
+        orders,
+        USER,
+        orderdetail,
+        items
+        WHERE orders.`user_id`=user.`id` AND orders.`id` = orderdetail.`orders_id` AND orderdetail.`items_id`=items.`id`
+    </select>
+
+    <resultMap type="com.cx.pojo.User" id="UserAndItemsResultMap">
+        <!-- 用户信息 -->
+        <id column="user_id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="age" property="age"/>
+        <!-- 订单信息 -->
+        <!-- 一个用户对应多个订单，使用collection -->
+        <collection property="ordersList" ofType="com.cx.pojo.Orders">
+            <id column="id" property="id"/>
+            <result column="user_id" property="userId"/>
+            <result column="number" property="number"/>
+            <result column="createtime" property="createtime"/>
+            <result column="note" property="note"/>
+            <!-- 订单明细信息 -->
+            <!-- 一个订单包括多个明细，使用collection -->
+            <collection property="orderdetails" ofType="com.cx.pojo.Orderdetail">
+                <id column="orderdetail_id" property="id"/>
+                <result column="items_id" property="itemsId"/>
+                <result column="items_num" property="itemsNum"/>
+                <result column="orders_id" property="ordersId"/>
+                <!-- 商品信息 -->
+                <!-- 一个明细对应一个商品信息，使用association -->
+                <association property="items" javaType="com.cx.pojo.Items">
+                    <id column="items_id" property="id"/>
+                    <result column="items_name" property="name"/>
+                    <result column="items_detail" property="detail"/>
+                    <result column="items_price" property="price"/>
+                </association>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <resultMap type="com.cx.pojo.Orders" id="OrdersUserLazyLoadingResultMap">
+        <!-- 配置映射订单信息 -->
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="number" property="number"/>
+        <result column="createtime" property="createtime"/>
+        <result column="note" property="note"/>
+
+        <!-- 配置映射的关联的用户信息 -->
+        <!-- association用于映射关联查询单个对象的信息
+            property：要将关联查询的用户信息映射到Orders中的哪个属性
+            javaType：该属性的类型
+         -->
+        <association property="user" javaType="com.cx.pojo.User" select="com.cx.mapper.UserMapper.findById" column="user_id">
+
+        </association>
+    </resultMap>
+
+    <select id="findOrdersUserLazyLoading" resultMap="OrdersUserLazyLoadingResultMap">
+        SELECT * FROM orders
+    </select>
+
+
+    <select id="findOrdersAndOrderDetailResultMap" resultMap="OrdersAndOrderDetailResultMap">
+        SELECT
+        orders.*,
+        user.`name`,
+        user.`age`,
+        orderdetail.`id` orderdetail_id,
+        orderdetail.`items_id`,
+        orderdetail.`items_num`,
+        orderdetail.`orders_id`
+        FROM
+        orders,
+        USER,
+        orderdetail
+        WHERE orders.`user_id`=user.`id` AND orders.`id` = orderdetail.`orders_id`
+    </select>
+
+    <select id="findOrdersUserResultMap" resultMap="OrdersUserResultMap">
+        SELECT
+        orders.*,
+        user.`name`,
+        user.`age`
+        FROM
+        orders,
+        USER
+        WHERE orders.`user_id` = user.`id`
+    </select>
+
+    <select id="findOrdersUser" resultType="com.cx.pojo.OrdersCustom">
+        SELECT
+        orders.*,
+        user.`name`,
+        user.`age`
+        FROM
+        orders,
+        USER
+        WHERE orders.`user_id` = user.`id`
+    </select>
+</mapper>

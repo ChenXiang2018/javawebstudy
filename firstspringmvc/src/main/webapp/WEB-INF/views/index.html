@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="https://cdn.bootcss.com/jquery/1.6.4/jquery.min.js"></script>
+    <title>登录</title>
+    <script type="text/javascript">
+        function test() {
+            $.ajax({
+                url: "/manage/user/login",
+                type: "post",
+                async: false,
+                data: {
+                    "userName":$("#userName").val(),
+                    "pw":$("#pw").val(),
+                },
+                success: function (data) {
+                    console.log(data);
+                    if (data.status == 'S00001') {
+                        $("#centerText").html(data.entity.userName);
+                    } else {
+                        $("#centerText").html(data.message);
+                    }
+
+                },
+                error: function (data) {
+                    alert("请求失败!");
+                }
+            });
+        };
+    </script>
+</head>
+<body>
+<form>
+    <input type="text" name="userName" id="userName" placeholder="用户名"/>
+    <input type="text" name="pw" id="pw" placeholder="密码"/>
+    <input type="button" onclick="test()" value="登录"/>
+</form>
+
+<!--用于显示结果-->
+<div id="centerText"></div>
+
+
+</body>
+</html>
