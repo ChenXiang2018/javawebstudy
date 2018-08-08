@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+        http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+<!-- 处理器适配器：HandlerAdapter。所有处理器适配器都实现了HandlerAdapter接口-->
+    <!-- SimpleControllerHandlerAdapter适配器能执行实现了Controller接口的Handler
+    所以，现在配置了这个适配器的话，所有的处理器Handler必须要实现Controller接口才行。
+-->
+    <!--<bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter" />-->
+    <!--<bean class="org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter" />-->
+
+    <!--&lt;!&ndash; 配置Handler &ndash;&gt;-->
+    <!--&lt;!&ndash;<bean name="/queryItems.action" class="com.cx.controller.ItemsController1" />&ndash;&gt;-->
+    <!--<bean id="itemsController1" class="com.cx.controller.ItemsController1" />-->
+    <!--<bean id="itemsController2" class="com.cx.controller.ItemsController2" />-->
+
+    <!--&lt;!&ndash; 配置处理器映射器-->
+    <!--将bean的name作为url进行查找，需要在配置Handler时指定beanname（就是url）-->
+ <!--&ndash;&gt;-->
+    <!--&lt;!&ndash;<bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping" />&ndash;&gt;-->
+
+    <!--<bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">-->
+        <!--<property name="mappings">-->
+            <!--<props>-->
+                <!--<prop key="/queryItems1.action">itemsController1</prop>-->
+                <!--<prop key="/queryItems2.action">itemsController2</prop>-->
+            <!--</props>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+    <!--<bean class="com.cx.controller.ItemsController3" />-->
+    <!--<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping "></bean>-->
+    <!--<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter "></bean>-->
+
+    <context:component-scan base-package="com.cx.controller"/>
+
+    <!-- 静态资源解析，包括js,css,img... -->
+    <mvc:resources location="/js/" mapping="/js/**"></mvc:resources>
+    <mvc:resources location="/img/" mapping="/img/**"></mvc:resources>
+    <mvc:annotation-driven/>
+    <mvc:annotation-driven conversion-service="conversionService" validator="validator"></mvc:annotation-driven>
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <list>
+                <bean class="com.cx.controller.CustomDateConverter"></bean>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 配置校验器 -->
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <!-- 校验器，使用hibernate校验器 -->
+        <property name="providerClass" value="org.hibernate.validator.HibernateValidator"/>
+        <!-- 指定校验使用的资源文件，在文件中配置校验错误信息，如果不指定则默认使用classpath下面的ValidationMessages.properties文件 -->
+        <property name="validationMessageSource" ref="messageSource"/>
+    </bean>
+    <!-- 校验错误信息配置文件 -->
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <!-- 资源文件名 -->
+        <property name="basenames">
+            <list>
+                <value>classpath:CustomValidationMessage</value>
+            </list>
+        </property>
+        <!-- 资源文件编码格式 -->
+        <property name="fileEncodings" value="utf-8"/>
+        <!-- 对资源文件内容缓存时间，单位秒 -->
+        <property name="cacheSeconds" value="120"/>
+    </bean>
+    <!-- springmvc提供的简单异常处理器 -->
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <!-- 定义默认的异常处理页面 -->
+        <property name="defaultErrorView" value="/WEB-INF/jsp/error.jsp"/>
+        <!-- 定义异常处理页面用来获取异常信息的变量名，也可不定义，默认名为exception -->
+        <property name="exceptionAttribute" value="ex"/>
+        <!-- 定义需要特殊处理的异常，这是重要点 -->
+        <property name="exceptionMappings">
+            <props>
+                <prop key="ssm.exception.CustomException">/WEB-INF/jsp/custom_error.jsp</prop>
+            </props>
+            <!-- 还可以定义其他的自定义异常 -->
+        </property>
+    </bean>
+    <!-- 文件上传,需要配置MultipartResolver处理器 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- 设置船上文件的最大尺寸为5MB -->
+        <property name="maxUploadSize" value="5242880"/>
+        <property name="defaultEncoding" value="utf-8"/>
+    </bean>
+
+
+    <!-- 配置拦截器 -->
+    <mvc:interceptors>
+        <!-- 多个拦截器，按顺序执行 -->
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/> <!-- 表示拦截所有的url包括子url路径 -->
+            <bean class="com.cx.controller.HandlerInterceptor1"/>
+        </mvc:interceptor>
+
+    </mvc:interceptors>
+    <!-- 配置视图解析器
+    进行jsp解析，默认使用jstl标签，classpath下得有jstl的包
+-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" />
+</beans>
