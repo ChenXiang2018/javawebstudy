@@ -1,0 +1,53 @@
+#test:
+#  user:
+#    username : zhangsan
+#    age : 18
+#    toString: the age of ${test.user.username} is ${test.user.age}
+spring:
+# Redis 配置信息
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+#    password:
+    timeout: 3000
+    jedis:
+      pool:
+        max-active: 200
+        max-wait: 1000
+        max-idle: 500
+        min-idle: 50
+  profiles:
+    active: dev
+#  datasource:
+#      driver-class-name: com.mysql.jdbc.Driver
+#      url: jdbc:mysql://localhost:3306/db_user
+#      username: root
+#      password: root
+  mail:
+    default-encoding: utf-8
+    host: smtp.qq.com
+    #发送者的邮箱授权码
+    password: 123123
+    #端口
+    port: 25
+    #协议
+    protocol: smtp
+    #发送者的邮箱账号
+    username: 123@qq.com
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/*.xml
+  config-location: classpath:mybatis/mybatis-config.xml
+logging:
+  config: classpath:log4j2.xml
+## Memcache 配置 ##
+memcache:
+  servers: 127.0.0.1:11211
+  failover: true
+  initConn: 100
+  minConn: 20
+  maxConn: 1000
+  maintSleep: 50
+  nagel: false
+  socketTO: 3000
+  aliveCheck: true
